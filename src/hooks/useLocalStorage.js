@@ -24,12 +24,28 @@ function useLocalStorage(key, initialValue) {
     setStoredValue(readValue())
   }, [readValue])
 
+  useEffect(() => {
+    const handleStorageChange = (event) => {
+      if (event?.key && event.key !== key) return
+      setStoredValue(readValue())
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('local-storage', handleStorageChange)
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('local-storage', handleStorageChange)
+    }
+  }, [key, readValue])
+
   const setValue = useCallback(
     (value) => {
       if (typeof window === 'undefined') return
       const valueToStore = value instanceof Function ? value(storedValue) : value
       setStoredValue(valueToStore)
       window.localStorage.setItem(key, JSON.stringify(valueToStore))
+      window.dispatchEvent(new Event('local-storage'))
     },
     [key, storedValue],
   )

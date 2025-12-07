@@ -46,11 +46,11 @@ function AffiliateInput() {
 
       let shortLink = affiliateLink
 
-      try {
-        shortLink = await createShortLink(affiliateLink)
-      } catch {
-        shortLink = affiliateLink
-      }
+      // try {
+      //   shortLink = await createShortLink(affiliateLink)
+      // } catch {
+      //   shortLink = affiliateLink
+      // }
 
       setAffLink(shortLink)
       message.success('Đã tạo link AFF')
