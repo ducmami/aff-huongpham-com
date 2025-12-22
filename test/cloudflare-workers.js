@@ -13,6 +13,7 @@ const PATTERNS = [
 const WHITELIST_DOMAINS = [
   "shope.ee",
   "shopee.vn",
+  "shp.ee",
 ];
 
 const DEFAULT_HEADERS = {
