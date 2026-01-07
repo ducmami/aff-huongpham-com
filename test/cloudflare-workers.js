@@ -4,17 +4,18 @@
 const DEFAULT_TIMEOUT_MS = 10_000;
 
 // Regex patterns compiled once at global scope (Cold start optimization)
-const PATTERNS = [
+const SHOPEE_PATTERNS = [
   /\/product\/(\d+)\/(\d+)/,
   /i\.(\d+)\.(\d+)/,
   /\/(\d{6,})\/(\d{6,})(?:[/?]|$)/,
 ];
 
-const WHITELIST_DOMAINS = [
-  "shope.ee",
-  "shopee.vn",
-  "shp.ee",
-];
+// ShopeeFood pattern: /shop/{shopid} or /now-food/shop/{shopid}
+const SHOPEE_FOOD_PATTERN = /\/(?:now-food\/)?shop\/(\d+)/;
+
+const SHOPEE_DOMAINS = ["shope.ee", "shopee.vn", "shp.ee"];
+const SHOPEE_FOOD_DOMAINS = ["spf.shopee.vn", "shopeefood.vn"];
+const WHITELIST_DOMAINS = [...SHOPEE_DOMAINS, ...SHOPEE_FOOD_DOMAINS];
 
 const DEFAULT_HEADERS = {
   "user-agent":
@@ -30,6 +31,7 @@ const buildResult = ({
   shopid = null,
   itemid = null,
   productId = null,
+  type = null,
   error = null,
 }) => ({
   short_url: shortUrl,
@@ -37,6 +39,7 @@ const buildResult = ({
   shopid,
   itemid,
   product_id: productId,
+  type,
   error,
 });
 
@@ -105,17 +108,42 @@ const resolveShopeeShortUrl = async (shortUrl) => {
   let shopid = null;
   let itemid = null;
   let productId = null;
+  let type = null;
 
   if (finalUrl) {
-    let match = null;
-    for (const pattern of PATTERNS) {
-      match = finalUrl.match(pattern);
-      if (match) break;
+    let finalParsed;
+    try {
+      finalParsed = new URL(finalUrl);
+    } catch {
+      finalParsed = null;
     }
 
-    if (match) {
-      [, shopid, itemid] = match;
-      productId = `i.${shopid}.${itemid}`;
+    const finalHostname = finalParsed?.hostname?.toLowerCase() || "";
+
+    // Determine type based on final URL domain
+    const isShopeeFood = SHOPEE_FOOD_DOMAINS.some(d => finalHostname.includes(d));
+    type = isShopeeFood ? "shopee_food" : "shopee";
+
+    if (isShopeeFood) {
+      // Parse ShopeeFood URL: /shop/{shopid} or /now-food/shop/{shopid}
+      const foodMatch = finalUrl.match(SHOPEE_FOOD_PATTERN);
+      if (foodMatch) {
+        shopid = foodMatch[1];
+        // ShopeeFood doesn't have itemid, only shopid
+        productId = null;
+      }
+    } else {
+      // Parse regular Shopee URL
+      let match = null;
+      for (const pattern of SHOPEE_PATTERNS) {
+        match = finalUrl.match(pattern);
+        if (match) break;
+      }
+
+      if (match) {
+        [, shopid, itemid] = match;
+        productId = `i.${shopid}.${itemid}`;
+      }
     }
   }
 
@@ -125,6 +153,7 @@ const resolveShopeeShortUrl = async (shortUrl) => {
     shopid,
     itemid,
     productId,
+    type,
   });
 };
 

@@ -37,12 +37,17 @@ function AffiliateInput() {
 
     setIsGenerating(true)
     try {
-      const { shopId, itemId, affiliateId } = await fetchCleanProductLink(link)
-      const cleanLink = `https://shopee.vn/product/${shopId}/${itemId}`
-      const encodedCleanLink = encodeURIComponent(cleanLink)
-      const affiliateLink = `https://s.shopee.vn/an_redir?origin_link=${encodedCleanLink}&affiliate_id=${affiliateId}&sub_id=${encodeURIComponent(
-        customerInfo.phone,
-      )}`
+      const { shopId, itemId, affiliateId, type } = await fetchCleanProductLink(link)
+      const encodedPhone = encodeURIComponent(customerInfo.phone)
+
+      let affiliateLink
+      if (type === 'shopee_food') {
+        affiliateLink = `https://shopeefood.vn/now-food/shop/${shopId}?mmp_pid=an_${affiliateId}&utm_source=an_${affiliateId}&utm_content=${encodedPhone}&sub_id=${encodedPhone}`
+      } else {
+        const cleanLink = `https://shopee.vn/product/${shopId}/${itemId}`
+        const encodedCleanLink = encodeURIComponent(cleanLink)
+        affiliateLink = `https://s.shopee.vn/an_redir?origin_link=${encodedCleanLink}&affiliate_id=${affiliateId}&sub_id=${encodedPhone}`
+      }
 
       let shortLink = affiliateLink
 

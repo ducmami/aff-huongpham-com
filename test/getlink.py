@@ -25,8 +25,8 @@ def resolve_shopee_short_url(short_url: str) -> dict:
     if not parsed.scheme or not parsed.netloc:
         return build_result(error="invalid_url")
 
-    if parsed.netloc.lower() != "s.shopee.vn":
-        return build_result(error="not_shopee_short_url")
+    # if parsed.netloc.lower() != "s.shopee.vn":
+    #     return build_result(error="not_shopee_short_url")
 
     try:
         response = requests.get(short_url, allow_redirects=True, timeout=10)
@@ -59,5 +59,5 @@ def resolve_shopee_short_url(short_url: str) -> dict:
 
 if __name__ == "__main__":
     # Ví dụ nhanh
-    print(resolve_shopee_short_url("https://s.shopee.vn/9UuCnuLvMJ"))
+    print(resolve_shopee_short_url("https://shopeefood.vn/u/jb9ueLq"))
 
